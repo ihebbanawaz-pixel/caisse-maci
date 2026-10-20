@@ -1,0 +1,157 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Article ou produit référencé dans le catalogue Stock Pro",
+      "type": "object",
+      "properties": {
+        "sku": { "type": "string", "maxLength": 64 },
+        "barcode": { "type": "string", "maxLength": 64 },
+        "name": { "type": "string", "maxLength": 200 },
+        "categoryId": { "type": "string", "maxLength": 64 },
+        "unit": { "type": "string", "maxLength": 32 },
+        "purchasePrice": { "type": "number" },
+        "sellingPrice": { "type": "number" },
+        "minThreshold": { "type": "number" },
+        "maxThreshold": { "type": "number" },
+        "isArchived": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["sku", "name", "categoryId", "unit", "purchasePrice", "sellingPrice", "minThreshold", "isArchived"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Catégorie de classification des articles",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "maxLength": 32 },
+        "name": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 }
+      },
+      "required": ["code", "name"]
+    },
+    "Warehouse": {
+      "title": "Warehouse",
+      "description": "Entrepôt physique ou lieu de stockage",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "maxLength": 32 },
+        "name": { "type": "string", "maxLength": 100 },
+        "address": { "type": "string", "maxLength": 200 },
+        "city": { "type": "string", "maxLength": 100 },
+        "manager": { "type": "string", "maxLength": 100 },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["code", "name", "isActive"]
+    },
+    "StockBalance": {
+      "title": "StockBalance",
+      "description": "Solde de stock physique et disponible par produit et entrepôt",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string", "maxLength": 64 },
+        "warehouseId": { "type": "string", "maxLength": 64 },
+        "physicalQuantity": { "type": "number" },
+        "reservedQuantity": { "type": "number" },
+        "availableQuantity": { "type": "number" },
+        "location": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["productId", "warehouseId", "physicalQuantity", "reservedQuantity", "availableQuantity"]
+    },
+    "StockMovement": {
+      "title": "StockMovement",
+      "description": "Journal immuable des flux et transactions d'entrée/sortie/transfert",
+      "type": "object",
+      "properties": {
+        "movementNumber": { "type": "string", "maxLength": 64 },
+        "type": { "type": "string", "maxLength": 32 },
+        "date": { "type": "string", "format": "date-time" },
+        "sourceWarehouseId": { "type": "string", "maxLength": 64 },
+        "targetWarehouseId": { "type": "string", "maxLength": 64 },
+        "documentRef": { "type": "string", "maxLength": 64 },
+        "partnerId": { "type": "string", "maxLength": 64 },
+        "totalValue": { "type": "number" },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["movementNumber", "type", "date", "userId", "createdAt"]
+    },
+    "PurchaseOrder": {
+      "title": "PurchaseOrder",
+      "description": "Commande fournisseur d'approvisionnement",
+      "type": "object",
+      "properties": {
+        "orderNumber": { "type": "string", "maxLength": 64 },
+        "supplierId": { "type": "string", "maxLength": 64 },
+        "warehouseId": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "maxLength": 32 },
+        "totalAmount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["orderNumber", "supplierId", "warehouseId", "status", "totalAmount"]
+    },
+    "SalesOrder": {
+      "title": "SalesOrder",
+      "description": "Commande client avec réservation de stock",
+      "type": "object",
+      "properties": {
+        "orderNumber": { "type": "string", "maxLength": 64 },
+        "customerId": { "type": "string", "maxLength": 64 },
+        "warehouseId": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "maxLength": 32 },
+        "totalAmount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["orderNumber", "customerId", "warehouseId", "status", "totalAmount"]
+    },
+    "InventorySession": {
+      "title": "InventorySession",
+      "description": "Session de comptage physique et ajustement de stock",
+      "type": "object",
+      "properties": {
+        "reference": { "type": "string", "maxLength": 64 },
+        "warehouseId": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "maxLength": 32 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["reference", "warehouseId", "status"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Catalogue des produits"
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Catégories de produits"
+    },
+    "/warehouses/{warehouseId}": {
+      "schema": "Warehouse",
+      "description": "Entrepôts de stockage"
+    },
+    "/stockBalances/{balanceId}": {
+      "schema": "StockBalance",
+      "description": "Soldes de stock par produit et entrepôt"
+    },
+    "/stockMovements/{movementId}": {
+      "schema": "StockMovement",
+      "description": "Mouvements de stock inaltérables"
+    },
+    "/purchaseOrders/{orderId}": {
+      "schema": "PurchaseOrder",
+      "description": "Commandes d'achats"
+    },
+    "/salesOrders/{orderId}": {
+      "schema": "SalesOrder",
+      "description": "Commandes de ventes"
+    },
+    "/inventorySessions/{sessionId}": {
+      "schema": "InventorySession",
+      "description": "Sessions d'inventaires"
+    }
+  }
+}

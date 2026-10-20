@@ -1,0 +1,132 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(allowedRoles) {
+      return isSignedIn() && (getUserData().role in allowedRoles);
+    }
+
+    function isAdmin() {
+      return hasRole(['admin']);
+    }
+
+    function isStockManager() {
+      return hasRole(['admin', 'stock_manager']);
+    }
+
+    function isWarehouseStaff() {
+      return hasRole(['admin', 'stock_manager', 'warehouseman']);
+    }
+
+    function isBuyer() {
+      return hasRole(['admin', 'stock_manager', 'buyer']);
+    }
+
+    function isSales() {
+      return hasRole(['admin', 'stock_manager', 'sales']);
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Profils utilisateurs
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || (isSignedIn() && request.auth.uid == userId && !('role' in request.resource.data));
+    }
+
+    // Paramètres généraux
+    match /settings/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Produits et Articles
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow create, update: if isStockManager();
+      allow delete: if false; // Suppression définitive interdite : archivage obligatoire
+    }
+
+    // Catégories
+    match /categories/{categoryId} {
+      allow read: if isSignedIn();
+      allow write: if isStockManager();
+    }
+
+    // Entrepôts
+    match /warehouses/{warehouseId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Soldes de stock
+    match /stockBalances/{balanceId} {
+      allow read: if isSignedIn();
+      // Doit être validé par un magasinier ou responsable, et le stock disponible ne doit jamais être négatif
+      allow write: if isWarehouseStaff() && request.resource.data.availableQuantity >= 0;
+    }
+
+    // Mouvements de stock : Immuables (création seule, jamais d'update ni delete)
+    match /stockMovements/{movementId} {
+      allow read: if isSignedIn();
+      allow create: if isWarehouseStaff() && 
+                    request.resource.data.movementNumber != null &&
+                    request.resource.data.items.size() > 0;
+      allow update, delete: if false;
+    }
+
+    // Commandes Fournisseurs
+    match /purchaseOrders/{orderId} {
+      allow read: if isSignedIn();
+      allow write: if isBuyer();
+    }
+
+    // Commandes Clients
+    match /salesOrders/{orderId} {
+      allow read: if isSignedIn();
+      allow write: if isSales();
+    }
+
+    // Fournisseurs
+    match /suppliers/{supplierId} {
+      allow read: if isSignedIn();
+      allow write: if isBuyer();
+    }
+
+    // Clients
+    match /customers/{customerId} {
+      allow read: if isSignedIn();
+      allow write: if isSales();
+    }
+
+    // Transferts
+    match /transfers/{transferId} {
+      allow read: if isSignedIn();
+      allow write: if isWarehouseStaff();
+    }
+
+    // Sessions d'inventaire
+    match /inventorySessions/{sessionId} {
+      allow read: if isSignedIn();
+      allow write: if isStockManager();
+    }
+
+    // Journal d'audit
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+  }
+}

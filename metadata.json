@@ -1,0 +1,6 @@
+{
+  "name": "Stock Pro",
+  "description": "Application professionnelle complète de gestion de stock multi-entrepôts, traçabilité transactionnelle, commandes, inventaires et statistiques en dinar tunisien (TND).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
